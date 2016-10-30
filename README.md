@@ -1,9 +1,11 @@
-Mycroft Media Skills
+Mopidy Skill
 =====================
+
+A small skill for playing music with the help of the mopidy music server. Currently the skill supports spotify, local music and google music. The skill is setup to play albums, playlists genres or artists.
 
 ### Requirements
 
-These media skills currently requires some external software to work.
+This skill require mopidy and some related packages to function:
 
 - libspotify
 - mopidy
@@ -20,13 +22,17 @@ Clone the *mopidy_skill* repository
 git clone http://github.com/forslund/mopidy_skill.git
 ```
 
-and copy desired skills to the `mycroft/mycroft/skills` directory or your directory for third party skills (`~/.mycroft/third_party_skills/` by default)
+into `mycroft/mycroft/skills` directory or your directory for third party skills (`~/.mycroft/third_party_skills/` by default)
 
 ### Mopidy Setup
 
-in *~/.config/mopidy/mopidy.conf* (if it doesn't exist it needs to be created) under
+Mopidy configuration is complex and this description will only touch the areas that are relevant for the skill.
+
+In *~/.config/mopidy/mopidy.conf* (if it doesn't exist it needs to be created) under
 
 `[spotify] `
+
+make sure the following parameters are entered
 
 ```
 enabled=true
@@ -56,9 +62,9 @@ Mycroft needs to be pointed to the mopidy server. Add the following to `~/.mycro
 mopidy_url = http://localhost:6680
 ```
 
-### Running the skills
+### Running the skill
 
-The skills will now be started together with mycroft but before starting mycroft *mopidy* should be launched.
+Before starting mycroft, *mopidy* should be launched.
 
 Easies way is to open a terminal and simply run
 
