@@ -27,7 +27,9 @@ class MopidySkill(MediaSkill):
         self.volume_is_low = False
 
     def _connect(self, message):
-        url = self.base_conf.get('mopidy_url', None)
+        url = 'http://localhost:6680'
+        if self.base_conf:
+            url = self.base_conf.get('mopidy_url', None)
         if self.config:
             url = self.config.get('mopidy_url', url)
         try:
