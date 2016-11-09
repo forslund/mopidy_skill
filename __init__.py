@@ -25,6 +25,7 @@ class MopidySkill(MediaSkill):
     def __init__(self):
         super(MopidySkill, self).__init__('Mopidy Skill')
         self.volume_is_low = False
+        self.connection_attempts = 0
 
     def _connect(self, message):
         url = 'http://localhost:6680'
@@ -35,11 +36,14 @@ class MopidySkill(MediaSkill):
         try:
             self.mopidy = Mopidy(url)
         except:
-            logger.info('Could not connect to server, retrying in 10 sec')
+            if self.connection_attempts < 1:
+                logger.debug('Could not connect to server, will retry quietly')
+            self.connection_attempts += 1
             time.sleep(10)
             self.emitter.emit(Message(self.name + '.connect'))
             return
 
+        logger.info('Connected to mopidy server')
         self.albums = {}
         self.artists = {}
         self.genres = {}
