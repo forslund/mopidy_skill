@@ -115,7 +115,7 @@ class MopidySkill(MediaSkill):
         self.mopidy.play()
 
     def handle_play_playlist(self, message):
-        p = message.metadata.get('PlaylistKeyword' + self.name)
+        p = message.data.get('PlaylistKeyword' + self.name)
         self.before_play()
         self.speak("Playing " + str(p))
         time.sleep(3)
@@ -170,8 +170,8 @@ class MopidySkill(MediaSkill):
 
     def search_spotify(self, message):
         logger.info('Search Spotify Intent')
-        logger.info(message.metadata)
-        name = message.metadata['Source']
+        logger.info(message.data)
+        name = message.data['Source']
         logger.info(name)
         results = self.mopidy.find_album(name, 'spotify')
         if len(results) > 0:
