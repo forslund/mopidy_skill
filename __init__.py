@@ -93,10 +93,9 @@ class MopidySkill(MediaSkill):
             .build()
         self.register_intent(intent, self.handle_play_playlist)
 
-        self.register_regex("for (?P<Source>.*)")
         intent = IntentBuilder('SearchSpotifyIntent' + self.name)\
             .require('SearchKeyword')\
-            .optionally('Source')\
+            .require('Source')\
             .require('SpotifyKeyword')\
             .build()
         self.register_intent(intent, self.search_spotify)
