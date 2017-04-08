@@ -177,7 +177,10 @@ class MopidySkill(MediaSkill):
             tracks = results[0]
         if results is not None:
             logger.info(results)
-            self.play(results[0]['uri'])
+            if len(results) > 0:
+                self.play(results[0]['uri'])
+            else:
+                self.speak('couldn\'t find an album matching ' + name)
 
 
 def create_skill():
