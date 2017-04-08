@@ -1,7 +1,6 @@
 import sys
 from os.path import dirname, abspath, basename
 
-from mycroft.skills.media import MediaSkill
 from adapt.intent import IntentBuilder
 from mycroft.messagebus.message import Message
 
@@ -16,6 +15,7 @@ from mycroft.util.log import getLogger
 
 sys.path.append(abspath(dirname(__file__)))
 Mopidy = __import__('mopidypost').Mopidy
+MediaSkill = __import__('media').MediaSkill
 
 logger = getLogger(abspath(__file__).split('/')[-2])
 __author__ = 'forslund'
