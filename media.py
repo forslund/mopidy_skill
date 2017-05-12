@@ -66,8 +66,12 @@ class MediaSkill(MycroftSkill):
            while mycroft is speaking.
         """
         self.emitter.on('mycroft.media.stop', self._media_stop)
+        self.emitter.on('recognizer_loop:record_begin',
+                        self.lower_volume)
         self.emitter.on('recognizer_loop:audio_output_start',
                         self.lower_volume)
+        self.emitter.on('recognizer_loop:record_end',
+                        self.restore_volume)
         self.emitter.on('recognizer_loop:audio_output_end',
                         self.restore_volume)
 
