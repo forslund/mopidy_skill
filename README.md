@@ -16,7 +16,7 @@ Most of these requirements can be installed through the standard method for the 
 
 ### Install skills
 
-Clone the *mopidy_skill* repository
+Use `msm install mopidy_skill` or clone the *mopidy_skill* repository
 
 ```
 git clone http://github.com/forslund/mopidy_skill.git
@@ -28,7 +28,13 @@ into `mycroft/mycroft/skills` directory or your directory for third party skills
 
 Mopidy configuration is complex and this description will only touch the areas that are relevant for the skill.
 
-In *~/.config/mopidy/mopidy.conf* (if it doesn't exist it needs to be created) under
+Mopidy settings are made in *~/.config/mopidy/mopidy.conf* for a desktop install and under */etc/mopidy/mopidy.conf* for picroft/Mark-1 (if it doesn't exist it needs to be created).
+
+Below the basic configuration needed is listed, for more details check out the official documentation at https://www.mopidy.com
+
+#### Spotify
+
+Under the heading
 
 `[spotify] `
 
@@ -38,10 +44,19 @@ make sure the following parameters are entered
 enabled=true
 username=USERNAME
 password=PASSWORD
+client_id = ... client_id value you got from mopidy.com
+client_secret = ... client_secret value you got from mopidy.com
 ```
 
-and under
+`client_id` and `client_secret` can be generated at https://www.mopidy.com/authenticate/#spotify
+
+#### Local music
+
+For playing music from the local file system or file share check under the heading
+
 ` [local] `
+
+and make sure the following config options are set according to your system
 
 ```
 enabled = true
@@ -55,11 +70,12 @@ after this is done scan the local collection by running
 
 ### Mycroft Setup
 
-Mycroft needs to be pointed to the mopidy server. Add the following to `~/.mycroft/mycroft.ini` for a local mopidy server at the defualt port:
+Mycroft needs to be pointed to the mopidy server. Add the following to `~/.mycroft/mycroft.conf` for a local mopidy server at the default port:
 
-```
-[Mopidy Skill]
-mopidy_url = http://localhost:6680
+```json
+  "Mopidy Skill": {
+    "mopidy_url" = "http://localhost:6680"
+  }
 ```
 
 ### Running the skill
