@@ -24,6 +24,7 @@ __author__ = 'forslund'
 class MopidySkill(MediaSkill):
     def __init__(self):
         super(MopidySkill, self).__init__('Mopidy Skill')
+        self.mopidy = None
         self.volume_is_low = False
         self.connection_attempts = 0
 
@@ -126,8 +127,9 @@ class MopidySkill(MediaSkill):
 
     def stop(self, message=None):
         logger.info('Handling stop request')
-        self.mopidy.clear_list()
-        self.mopidy.stop()
+        if self.mopidy:
+            self.mopidy.clear_list()
+            self.mopidy.stop()
 
     def handle_next(self, message):
         self.mopidy.next()
