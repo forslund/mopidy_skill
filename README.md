@@ -74,7 +74,7 @@ Mycroft needs to be pointed to the mopidy server. Add the following to `~/.mycro
 
 ```json
   "Mopidy Skill": {
-    "mopidy_url" = "http://localhost:6680"
+    "mopidy_url": "http://localhost:6680"
   }
 ```
 
