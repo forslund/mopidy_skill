@@ -4,21 +4,13 @@ from os.path import dirname, abspath, basename
 from adapt.intent import IntentBuilder
 from mycroft.messagebus.message import Message
 
-
 import time
-
 import requests
-
 from os.path import dirname
+from mycroft.util.log import LOG
 
-from mycroft.util.log import getLogger
-
-sys.path.append(abspath(dirname(__file__)))
-Mopidy = __import__('mopidypost').Mopidy
-MediaSkill = __import__('media').MediaSkill
-
-logger = getLogger(abspath(__file__).split('/')[-2])
-__author__ = 'forslund'
+from .mopidypost import Mopidy
+from .media import MediaSkill
 
 
 class MopidySkill(MediaSkill):
@@ -38,20 +30,20 @@ class MopidySkill(MediaSkill):
             self.mopidy = Mopidy(url)
         except:
             if self.connection_attempts < 1:
-                logger.debug('Could not connect to server, will retry quietly')
+                LOG.debug('Could not connect to server, will retry quietly')
             self.connection_attempts += 1
             time.sleep(10)
             self.emitter.emit(Message(self.name + '.connect'))
             return
 
-        logger.info('Connected to mopidy server')
+        LOG.info('Connected to mopidy server')
         self.albums = {}
         self.artists = {}
         self.genres = {}
         self.playlists = {}
         self.radios = {}
 
-        logger.info('Loading content')
+        LOG.info('Loading content')
         self.albums['gmusic'] = self.mopidy.get_gmusic_albums()
         self.artists['gmusic'] = self.mopidy.get_gmusic_artists()
         self.genres['gmusic'] = self.mopidy.get_gmusic_radio()
@@ -69,18 +61,18 @@ class MopidySkill(MediaSkill):
 
         self.playlist = {}
         for loc in ['local', 'gmusic', 'spotify']:
-            logger.info(loc)
+            LOG.info(loc)
             self.playlist.update(self.playlists[loc])
-            logger.info(loc)
+            LOG.info(loc)
             self.playlist.update(self.genres[loc])
-            logger.info(loc)
+            LOG.info(loc)
             self.playlist.update(self.artists[loc])
-            logger.info(loc)
+            LOG.info(loc)
             self.playlist.update(self.albums[loc])
 
         self.register_vocabulary(self.name, 'NameKeyword')
         for p in self.playlist.keys():
-            logger.debug("Playlist: " + p)
+            LOG.debug("Playlist: " + p)
             self.register_vocabulary(p, 'PlaylistKeyword' + self.name)
         intent = IntentBuilder('PlayPlaylistIntent' + self.name)\
             .require('PlayKeyword')\
@@ -102,7 +94,7 @@ class MopidySkill(MediaSkill):
         self.register_intent(intent, self.search_spotify)
 
     def initialize(self):
-        logger.info('initializing Mopidy skill')
+        LOG.info('initializing Mopidy skill')
         super(MopidySkill, self).initialize()
         self.load_data_files(dirname(__file__))
 
@@ -126,7 +118,7 @@ class MopidySkill(MediaSkill):
         self.play(tracks)
 
     def stop(self, message=None):
-        logger.info('Handling stop request')
+        LOG.info('Handling stop request')
         if self.mopidy:
             self.mopidy.clear_list()
             self.mopidy.stop()
@@ -145,16 +137,16 @@ class MopidySkill(MediaSkill):
         self.mopidy.resume()
 
     def lower_volume(self, message):
-        logger.info('lowering volume')
+        LOG.info('lowering volume')
         self.mopidy.lower_volume()
         self.volume_is_low = True
 
     def restore_volume(self, message):
-        logger.info('maybe restoring volume')
+        LOG.info('maybe restoring volume')
         self.volume_is_low = False
         time.sleep(2)
         if not self.volume_is_low:
-            logger.info('restoring volume')
+            LOG.info('restoring volume')
             self.mopidy.restore_volume()
 
     def handle_currently_playing(self, message):
@@ -170,15 +162,15 @@ class MopidySkill(MediaSkill):
             self.mopidy.restore_volume()
 
     def search_spotify(self, message):
-        logger.info('Search Spotify Intent')
-        logger.info(message.data)
+        LOG.info('Search Spotify Intent')
+        LOG.info(message.data)
         name = message.data['Source']
-        logger.info(name)
+        LOG.info(name)
         results = self.mopidy.find_album(name, 'spotify')
         if len(results) > 0:
             tracks = results[0]
         if results is not None:
-            logger.info(results)
+            LOG.info(results)
             if len(results) > 0:
                 self.play(results[0]['uri'])
             else:
