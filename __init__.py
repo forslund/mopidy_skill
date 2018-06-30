@@ -8,6 +8,7 @@ import time
 import requests
 from os.path import dirname
 from mycroft.util.log import LOG
+import subprocess
 
 from .mopidypost import Mopidy
 from .media import MediaSkill
@@ -19,6 +20,8 @@ class MopidySkill(MediaSkill):
         self.mopidy = None
         self.volume_is_low = False
         self.connection_attempts = 0
+        subprocess.call(['mopidy', 'local', 'scan'])
+        self.process = subprocess.Popen(['mopidy'])
 
     def _connect(self, message):
         url = 'http://localhost:6680'
@@ -175,6 +178,16 @@ class MopidySkill(MediaSkill):
                 self.play(results[0]['uri'])
             else:
                 self.speak('couldn\'t find an album matching ' + name)
+
+    def stop_mopidy(self):
+        """ Send Terminate signal to librespot if it's running. """
+        if self.process and self.process.poll() is None:
+            self.process.send_signal(signal.SIGTERM)
+            self.process.communicate()  # Communicate to remove zombie
+            self.process = None
+
+    def shutdown(self):
+        self.stop_mopidy()        
 
 
 def create_skill():
