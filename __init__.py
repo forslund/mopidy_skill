@@ -30,11 +30,10 @@ class MopidySkill(MycroftSkill):
             if self.connection_attempts < 1:
                 LOG.debug('Could not connect to server, will retry quietly')
             self.connection_attempts += 1
-            time.sleep(10)
-            self.emitter.emit(Message(self.name + '.connect'))
             return
 
         LOG.info('Connected to mopidy server')
+        self.cancel_scheduled_event('MopidyConnect')
         self.albums = {}
         self.artists = {}
         self.genres = {}
@@ -102,8 +101,8 @@ class MopidySkill(MycroftSkill):
         self.add_event('mycroft.audio.service.pause', self.handle_pause)
         self.add_event('mycroft.audio.service.resume', self.handle_resume)
 
-        self.emitter.on(self.name + '.connect', self._connect)
-        self.emitter.emit(Message(self.name + '.connect'))
+        self.schedule_repeating_event(self._connect, None, 10,
+                                      name='MopidyConnect')
 
     def play(self, tracks):
         self.mopidy.clear_list()
