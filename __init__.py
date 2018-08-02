@@ -3,6 +3,7 @@ from os.path import dirname, abspath, basename
 
 from adapt.intent import IntentBuilder
 from mycroft.messagebus.message import Message
+from mycroft import MycroftSkill
 
 import time
 import requests
@@ -10,10 +11,9 @@ from os.path import dirname
 from mycroft.util.log import LOG
 
 from .mopidypost import Mopidy
-from .media import MediaSkill
 
 
-class MopidySkill(MediaSkill):
+class MopidySkill(MycroftSkill):
     def __init__(self):
         super(MopidySkill, self).__init__('Mopidy Skill')
         self.mopidy = None
@@ -22,8 +22,6 @@ class MopidySkill(MediaSkill):
 
     def _connect(self, message):
         url = 'http://localhost:6680'
-        if self.base_conf:
-            url = self.base_conf.get('mopidy_url', None)
         if self.config:
             url = self.config.get('mopidy_url', url)
         try:
@@ -98,6 +96,12 @@ class MopidySkill(MediaSkill):
         super(MopidySkill, self).initialize()
         self.load_data_files(dirname(__file__))
 
+        # Setup handlers for playback control messages
+        self.add_event('mycroft.audio.service.next', self.handle_next)
+        self.add_event('mycroft.audio.service.prev', self.handle_prev)
+        self.add_event('mycroft.audio.service.pause', self.handle_pause)
+        self.add_event('mycroft.audio.service.resume', self.handle_resume)
+
         self.emitter.on(self.name + '.connect', self._connect)
         self.emitter.emit(Message(self.name + '.connect'))
 
@@ -108,7 +112,7 @@ class MopidySkill(MediaSkill):
 
     def handle_play_playlist(self, message):
         p = message.data.get('PlaylistKeyword' + self.name)
-        self.before_play()
+        self.stop()
         self.speak("Playing " + str(p))
         time.sleep(3)
         if self.playlist[p]['type'] == 'playlist':
@@ -132,7 +136,7 @@ class MopidySkill(MediaSkill):
     def handle_pause(self, message):
         self.mopidy.pause()
 
-    def handle_play(self, message):
+    def handle_resume(self, message):
         """Resume playback if paused"""
         self.mopidy.resume()
 
