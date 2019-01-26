@@ -22,6 +22,8 @@ class MopidySkill(MycroftSkill):
 
     def _connect(self, message):
         url = 'http://localhost:6680'
+        if self.settings:
+            url = self.settings.get('mopidy_url', url)
         if self.config:
             url = self.config.get('mopidy_url', url)
         try:

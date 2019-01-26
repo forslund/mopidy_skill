@@ -1,0 +1,22 @@
+{
+    "name": "Mopidy Settings",
+    "skillMetadata": {
+        "sections": [
+            {
+                "name": "Options",
+                "fields": [
+                    {
+                        "type": "label",
+                        "label": "To be used the skill requires a mopidy audio server." 
+                    },
+                    {
+                        "name": "mopidy_url",
+                        "type": "text",
+                        "label": "Mopidy url",
+                        "value": "http://localhost:6680"
+                    }
+                ]
+            }
+        ]
+    }
+}
