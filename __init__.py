@@ -22,10 +22,10 @@ class MopidySkill(MycroftSkill):
 
     def _connect(self, message):
         url = 'http://localhost:6680'
-        if self.settings:
-            url = self.settings.get('mopidy_url', url)
-        if self.config:
-            url = self.config.get('mopidy_url', url)
+#        if self.settings:
+#            url = self.settings.get('mopidy_url', url)
+#        if self.config:
+#            url = self.config.get('mopidy_url', url)
         try:
             self.mopidy = Mopidy(url)
         except:
@@ -41,25 +41,30 @@ class MopidySkill(MycroftSkill):
         self.genres = {}
         self.playlists = {}
         self.radios = {}
+        self.track_names = {}
 
         LOG.info('Loading content')
         self.albums['gmusic'] = self.mopidy.get_gmusic_albums()
         self.artists['gmusic'] = self.mopidy.get_gmusic_artists()
         self.genres['gmusic'] = self.mopidy.get_gmusic_radio()
         self.playlists['gmusic'] = {}
+        self.track_names['gmusic'] = {}
 
         self.albums['local'] = self.mopidy.get_local_albums()
         self.artists['local'] = self.mopidy.get_local_artists()
         self.genres['local'] = self.mopidy.get_local_genres()
         self.playlists['local'] = self.mopidy.get_local_playlists()
+        self.track_names['local'] = self.mopidy.get_local_track_names()
 
         self.albums['spotify'] = {}
         self.artists['spotify'] = {}
         self.genres['spotify'] = {}
         self.playlists['spotify'] = self.mopidy.get_spotify_playlists()
+        self.track_names['spotify'] = {}
 
         self.playlist = {}
         for loc in ['local', 'gmusic', 'spotify']:
+#        for loc in ['local']:
             LOG.info(loc)
             self.playlist.update(self.playlists[loc])
             LOG.info(loc)
@@ -68,6 +73,8 @@ class MopidySkill(MycroftSkill):
             self.playlist.update(self.artists[loc])
             LOG.info(loc)
             self.playlist.update(self.albums[loc])
+            LOG.info(loc)
+            self.playlist.update(self.track_names[loc])
 
         self.register_vocabulary(self.name, 'NameKeyword')
         for p in self.playlist.keys():
@@ -118,6 +125,8 @@ class MopidySkill(MycroftSkill):
         time.sleep(3)
         if self.playlist[p]['type'] == 'playlist':
             tracks = self.mopidy.get_items(self.playlist[p]['uri'])
+        if self.playlist[p]['type'] == 'track':
+            tracks = self.playlist[p]['uri']
         else:
             tracks = self.mopidy.get_tracks(self.playlist[p]['uri'])
         self.play(tracks)
