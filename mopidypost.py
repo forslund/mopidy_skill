@@ -20,13 +20,13 @@ class Mopidy(object):
         d = copy(_base_dict)
         d['method'] = 'core.library.search'
         d['params'] = {'artist': [artist]}
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         return r.json()['result'][1]['artists']
 
     def get_playlists(self, filter=None):
         d = copy(_base_dict)
         d['method'] = 'core.playlists.as_list'
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         if filter is None:
             return r.json()['result']
         else:
@@ -36,7 +36,7 @@ class Mopidy(object):
         d = copy(_base_dict)
         d['method'] = 'core.library.search'
         d['params'] = {'album': [album]}
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         l = [res['albums'] for res in r.json()['result'] if 'albums' in res]
         if filter is None:
             return l
@@ -47,14 +47,14 @@ class Mopidy(object):
         d = copy(_base_dict)
         d['method'] = 'core.library.find_exact'
         d['params'] = {'uris': uris}
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         return r.json()
 
     def browse(self, uri):
         d = copy(_base_dict)
         d['method'] = 'core.library.browse'
         d['params'] = {'uri': uri}
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         if 'result' in r.json():
             return r.json()['result']
         else:
@@ -64,7 +64,7 @@ class Mopidy(object):
         if self.is_playing or force:
             d = copy(_base_dict)
             d['method'] = 'core.tracklist.clear'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
             return r
 
     def add_list(self, uri):
@@ -76,7 +76,7 @@ class Mopidy(object):
             d['params'] = {'uris': uri}
         else:
             return None
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         return r
 
     def play(self):
@@ -84,32 +84,32 @@ class Mopidy(object):
         self.restore_volume()
         d = copy(_base_dict)
         d['method'] = 'core.playback.play'
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
 
     def next(self):
         if self.is_playing:
             d = copy(_base_dict)
             d['method'] = 'core.playback.next'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
 
     def previous(self):
         if self.is_playing:
             d = copy(_base_dict)
             d['method'] = 'core.playback.previous'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
 
     def stop(self):
         if self.is_playing:
             d = copy(_base_dict)
             d['method'] = 'core.playback.stop'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
             self.is_playing = False
 
     def currently_playing(self):
         if self.is_playing:
             d = copy(_base_dict)
             d['method'] = 'core.playback.get_current_track'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
             return r.json()['result']
         else:
             return None
@@ -119,7 +119,7 @@ class Mopidy(object):
             d = copy(_base_dict)
             d['method'] = 'core.mixer.set_volume'
             d['params'] = {'volume': percent}
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
 
     def lower_volume(self):
         self.set_volume(self.volume_low)
@@ -131,19 +131,19 @@ class Mopidy(object):
         if self.is_playing:
             d = copy(_base_dict)
             d['method'] = 'core.playback.pause'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
 
     def resume(self):
         if self.is_playing:
             d = copy(_base_dict)
             d['method'] = 'core.playback.resume'
-            r = requests.post(self.url, data=json.dumps(d))
+            r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
 
     def get_items(self, uri):
         d = copy(_base_dict)
         d['method'] = 'core.playlists.get_items'
         d['params'] = {'uri': uri}
-        r = requests.post(self.url, data=json.dumps(d))
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         if 'result' in r.json():
             return [e['uri'] for e in r.json()['result']]
         else:
