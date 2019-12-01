@@ -1,6 +1,7 @@
 import requests
 from copy import copy
 import json
+from mycroft.util.log import LOG
 
 MOPIDY_API = '/mopidy/rpc'
 
@@ -38,6 +39,17 @@ class Mopidy(object):
         d['params'] = {'album': [album]}
         r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
         l = [res['albums'] for res in r.json()['result'] if 'albums' in res]
+        if filter is None:
+            return l
+        else:
+            return [i for sl in l for i in sl if filter + ':' in i['uri']]
+
+    def find_track(self, track, filter=None):
+        d = copy(_base_dict)
+        d['method'] = 'core.library.search'
+        d['params'] = {'track_name': [track]}
+        r = requests.post(self.url, headers={"content-type":"application/json"}, data=json.dumps(d))
+        l = [res['tracks'] for res in r.json()['result'] if 'tracks' in res]
         if filter is None:
             return l
         else:
@@ -169,6 +181,10 @@ class Mopidy(object):
     def get_local_genres(self):
         p = self.browse('local:directory?type=genre')
         return {e['name']: e for e in p if e['type'] == 'directory'}
+
+    def get_local_track_names(self):
+        p = self.browse('local:directory?type=track')
+        return {e['name']: e for e in p if e['type'] == 'track'}
 
     def get_local_playlists(self):
         p = self.get_playlists('m3u')
