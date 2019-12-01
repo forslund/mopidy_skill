@@ -1,0 +1,8 @@
+{
+  "play_start": {
+    "phrase": "armikrog ost",
+    "callback_data": {
+        "playlist": "Armikrog OST"
+    }
+  }
+}

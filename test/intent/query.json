@@ -1,0 +1,8 @@
+{
+    "play_query": "armikrog ost",
+    "play_query_match": {
+        "phrase": "armikrog ost",
+        "data": {"playlist": "Armkrog OST"},
+        "confidence_threshold": 0.5
+    }
+}
