@@ -1,3 +1,4 @@
+import re
 import time
 from fuzzywuzzy.process import extractOne as extract_one
 
@@ -6,11 +7,15 @@ from mycroft.skills.common_play_skill import CommonPlaySkill, CPSMatchLevel
 from .mopidypost import Mopidy
 
 
+NOTHING_FOUND = (None, 0.0)
+
+
 class MopidySkill(CommonPlaySkill):
     def __init__(self):
         super(MopidySkill, self).__init__('Mopidy Skill')
         self.mopidy = None
         self.volume_is_low = False
+        self.regexes = {}
 
     def _connect(self):
         url = 'http://localhost:6680'
@@ -83,33 +88,147 @@ class MopidySkill(CommonPlaySkill):
         self.mopidy.add_list(tracks)
         self.mopidy.play()
 
+    def translate_regex(self, regex):
+        if regex not in self.regexes:
+            path = self.find_resource(regex + '.regex', 'dialog')
+            if path:
+                with open(path) as f:
+                    string = f.read().strip()
+                self.regexes[regex] = string
+        return self.regexes[regex]
+
     def CPS_match_query_phrase(self, phrase):
+        # If no mopidy connection can be detected return None
         if self.mopidy is None:
             self.mopidy = self._connect()
             if not self.mopidy:
                 return None
 
         self.log.info('Checking Mopidy for {}'.format(phrase))
-        found, conf = extract_one(phrase, self.playlist.keys())
-        if conf > 0.5:
-            return (phrase,
-                    CPSMatchLevel.GENERIC,
-                    {'playlist': found})
-        else:
-            self.log.info('Nothing found on Mopidy')
+
+        mopidy_specified = 'mopidy' in phrase
+        phrase = re.sub(self.translate_regex('on_mopidy'), '', phrase)
+
+        match_level = CPSMatchLevel.MULTI_KEY
+        match = self.specific_query(phrase)
+        # If nothing was found check for a generic match
+        if match == NOTHING_FOUND:
+            match = self.generic_query(phrase)
+            match_level = CPSMatchLevel.GENERIC
+
+        self.log.info('Mopidy match: {}'.format(match))
+        if match == NOTHING_FOUND:
+            self.log.debug('Nothing found on mopidy')
             return None
+        else:
+            return (phrase,
+                    (CPSMatchLevel.EXACT if mopidy_specified else match_level),
+                    {'playlist': match[0],
+                     'playlist_type': match[2],
+                     'library_type': match[3]
+                     })
+
+
+    def query_song(self, song):
+        best_found = None
+        best_conf = 0
+        library_type = None
+        for t in self.track_names:
+            found, conf = (extract_one(song, self.track_names[t].keys()) or
+                           (None, 0))
+            if conf > best_conf and conf > 50:
+                best_conf = conf
+                best_found = found
+                library_type = t
+        return best_found, best_conf, 'song', library_type
+
+
+    def query_artist(self, artist):
+        best_found = None
+        best_conf = 0.0
+        library_type = None
+        for t in self.artists:
+            found, conf = (extract_one(artist, self.artists[t].keys()) or
+                           (None, 0))
+            if conf > best_conf and conf > 50:
+                best_conf = conf
+                best_found = found
+                library_type = t
+        return best_found, best_conf, 'artist', library_type
+
+    def query_album(self, album):
+        best_found = None
+        best_conf = 0
+        library_type = None
+        for t in self.albums:
+            self.log.info(self.albums[t].keys())
+            found, conf = (extract_one(album, self.albums[t].keys()) or
+                           (None, 0))
+            if conf > best_conf and conf > 50:
+                best_conf = conf
+                best_found = found
+                library_type = t
+        self.log.info('ALBUMS')
+        self.log.info((best_found, best_conf))
+        return best_found, best_conf, 'album', library_type
+
+    def specific_query(self, phrase):
+        """Check if the request is for a specific type.
+
+        This checks, albums, artists, genres and tracks.
+        """
+        # Check if playlist
+        #match = re.match(self.translate_regex('playlist'), phrase)
+        #if match:
+        #    return self.query_playlist(match.groupdict()['playlist'])
+
+        # Check album
+        match = re.match(self.translate_regex('album'), phrase)
+        if match:
+            album = match.groupdict()['album']
+            return self.query_album(album)
+
+        # Check artist
+        match = re.match(self.translate_regex('artist'), phrase)
+        if match:
+            artist = match.groupdict()['artist']
+            return self.query_artist(artist)
+        match = re.match(self.translate_regex('song'), phrase)
+        if match:
+            song = match.groupdict()['track']
+            return self.query_song(song)
+        return NOTHING_FOUND
+
+    def generic_query(self, phrase):
+        found, conf = extract_one(phrase, self.playlist.keys())
+        if conf > 50:
+            return found, conf, 'generic', ''
+        else:
+            return NOTHING_FOUND
 
     def CPS_start(self, phrase, data):
         p = data.get('playlist')
+        list_type = data.get('playlist_type', 'generic')
+        library_type = data.get('library_type', 'generic')
+
+        lists = {'generic': self.playlist,
+                 'artist': self.artists,
+                 'album': self.albums,
+                 'song': self.track_names
+                 }
+        if list_type == 'generic':
+            playlists = lists[list_type]
+        else:
+            playlists = lists[list_type][library_type]
         self.stop()
         self.speak('Playing {}'.format(p))
         time.sleep(3)
-        if self.playlist[p]['type'] == 'playlist':
-            tracks = self.mopidy.get_items(self.playlist[p]['uri'])
-        if self.playlist[p]['type'] == 'track':
-            tracks = self.playlist[p]['uri']
+        if playlists[p]['type'] == 'playlist':
+            tracks = self.mopidy.get_items(playlists[p]['uri'])
+        if playlists[p]['type'] == 'track':
+            tracks = playlists[p]['uri']
         else:
-            tracks = self.mopidy.get_tracks(self.playlist[p]['uri'])
+            tracks = self.mopidy.get_tracks(playlists[p]['uri'])
         self.play(tracks)
 
     def stop(self, message=None):
