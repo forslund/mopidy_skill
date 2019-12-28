@@ -197,7 +197,21 @@ class Mopidy(object):
     def get_gmusic_albums(self):
         p = self.browse('gmusic:album')
         p = {e['name']: e for e in p if e['type'] == 'directory'}
-        return {e.split(' - ')[1]: p[e] for e in p}
+        result = {}
+        for artist_and_album, entry in p.items():
+            try:
+                split_entries = artist_and_album.split(' - ')
+                if len(split_entries) > 1:
+                    album_name = split_entries[-1]
+                    result[album_name] = entry
+                else:
+                    LOG.warning('Could not identify album for GMusic album entry: %s' % artist_and_album)
+                    pass
+            except:
+                LOG.warning('Ignoring unparseable GMusic album entry: %s' % artist_and_album)
+                pass
+
+        return result
 
     def get_gmusic_artists(self):
         p = self.browse('gmusic:artist')
