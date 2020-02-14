@@ -83,7 +83,7 @@ class Mopidy(object):
         d = copy(_base_dict)
         d['method'] = 'core.tracklist.add'
         if isinstance(uri, str):
-            d['params'] = {'uri': uri}
+            d['params'] = {'uris': [uri]}
         elif isinstance(uri, list):
             d['params'] = {'uris': uri}
         else:
